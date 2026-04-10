@@ -79,7 +79,7 @@ async function generateMockData(username: string): Promise<ProfileData> {
 
   // ── Primary: Local Express API (Instaloader) ─────────────────────────────
   try {
-    const localRes = await fetch(`http://localhost:3001/api/profile?username=${encodeURIComponent(username)}`, {
+    const localRes = await fetch(`/api/profile?username=${encodeURIComponent(username)}`, {
       signal: AbortSignal.timeout(8000),
     });
     if (localRes.ok) {
@@ -206,22 +206,28 @@ async function generateMockData(username: string): Promise<ProfileData> {
     return { label: "Brand Ready", stroke: "border-emerald-500/50", bg: "bg-emerald-500/20", icon: "✅" };
   })();
 
+  // Add variance to confidence scores based on username hash
+  const getConf = (base: number) => {
+    const hash = username.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return Math.min(98, Math.max(75, base + (hash % 10) - 5));
+  };
+
   const biTags = {
     category: [
-      { tag: businessCategory, confidence: 92 },
-      { tag: isActuallyB2B ? "Enterprise" : "Lifestyle", confidence: 85 }
+      { tag: businessCategory, confidence: getConf(92) },
+      { tag: isActuallyB2B ? "Enterprise" : "Lifestyle", confidence: getConf(85) }
     ],
     services: [
-      { tag: isActuallyB2B ? "Consulting" : "Brand Promotion", confidence: 88 },
-      { tag: "Content Strategy", confidence: 94 }
+      { tag: isActuallyB2B ? "Consulting" : "Brand Promotion", confidence: getConf(88) },
+      { tag: "Content Strategy", confidence: getConf(94) }
     ],
     themes: [
-      { tag: contentType, confidence: 90 },
-      { tag: "Digital Trends", confidence: 78 }
+      { tag: contentType, confidence: getConf(90) },
+      { tag: "Digital Trends", confidence: getConf(78) }
     ],
     audience: [
-      { tag: audienceType, confidence: 88 },
-      { tag: followers > 20000 ? "High Reach" : "Niche Focus", confidence: 82 }
+      { tag: audienceType, confidence: getConf(88) },
+      { tag: followers > 20000 ? "High Reach" : "Niche Focus", confidence: getConf(82) }
     ]
   };
 
